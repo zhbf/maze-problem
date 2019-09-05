@@ -11,6 +11,7 @@
                              :min="limit.min"
                              :max="limit.max"
                              @blur="inputBlur"
+                             @change="generateMaze"
             ></el-input-number>
           </el-form-item>
           <el-form-item label="列数">
@@ -18,16 +19,14 @@
                              :min="limit.min"
                              :max="limit.max"
                              @blur="inputBlur"
+                             @change="generateMap"
             ></el-input-number>
           </el-form-item>
           <el-form-item>
-            <el-button @click="generate">生成</el-button>
+            <el-button type="primary" @click="calculate">计算</el-button>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="generate">计算</el-button>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="danger" @click="generate">随机障碍</el-button>
+            <el-button type="danger" @click="generateMap">随机障碍</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -36,8 +35,8 @@
              v-for="i of form.row"
              :key="`row${i}`">
           <div class="maze-step"
-               :class="Math.random()*100>90?'obstacle':''"
                v-for="j of form.col"
+               :class="maze[i-1][j-1] === 1 ? 'obstacle' : ''"
                :key="`col${j}`"
           ></div>
         </div>
@@ -55,11 +54,17 @@
           row: 10,
           col: 10
         },
+        // 表单限制
         limit: {
           min: 3,
           max: 20
-        }
+        },
+        // 迷宫记录
+        maze: []
       }
+    },
+    created() {
+      this.generateMap()
     },
     methods: {
       // 输入框失去焦点
@@ -71,9 +76,28 @@
           this.form.col = 10
         }
       },
+      // 生成地图
+      generateMap() {
+        let maze = []
+        // 生成行
+        for (let i = 0; i < this.form.row; i++) {
+          let row = []
+          for (let j = 0; j < this.form.col; j++) {
+            row.push(this.generateMaze() ? 1 : 0)
+          }
+
+          maze.push(row)
+        }
+
+        this.maze = maze
+      },
+      // 生成障碍
+      generateMaze() {
+        return Math.random() * 1000 > 850
+      },
       // 生成
-      generate() {
-        this.$message(JSON.stringify(this.form))
+      calculate() {
+        this.$message(JSON.stringify(this.maze))
       }
     },
     components: {}
