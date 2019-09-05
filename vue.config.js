@@ -25,7 +25,6 @@ module.exports = {
     // 这些玩意使用CDN
     externals: {
       'vue': 'Vue',
-      'animate ': 'animate.css',
       'element-ui': 'ELEMENT'
     }
   }

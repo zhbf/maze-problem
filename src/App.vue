@@ -11,7 +11,7 @@
                              :min="limit.min"
                              :max="limit.max"
                              @blur="inputBlur"
-                             @change="generateMaze"
+                             @change="generateMap"
             ></el-input-number>
           </el-form-item>
           <el-form-item label="列数">
@@ -26,7 +26,7 @@
             <el-button type="primary" @click="calculate">计算</el-button>
           </el-form-item>
           <el-form-item>
-            <el-button type="danger" @click="generateMap">随机障碍</el-button>
+            <el-button type="danger" @click="autoObstacle">随机障碍</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -38,6 +38,7 @@
                v-for="j of form.col"
                :class="maze[i-1][j-1] === 1 ? 'obstacle' : ''"
                :key="`col${j}`"
+               @click="changeStatus(i,j)"
           ></div>
         </div>
       </div>
@@ -47,6 +48,33 @@
 </template>
 
 <script>
+  /**
+   * 生成一个二维数组
+   *
+   * @param form 包含row,col的值
+   * @param random 是否随机
+   * @returns {[]}
+   */
+  const initMaze = function (form, random = false) {
+    let maze = []
+    // 生成行
+    for (let i = 1; i <= form.row; i++) {
+      let row = []
+      for (let j = 1; j <= form.col; j++) {
+        // 设置障碍状态
+        // 第一个位置和最后一个位置不能为障碍
+        if ((i === 1 && i === j) || (i === form.row && j === form.col)) {
+          row.push(0)
+        } else {
+          row.push(random ? Math.random() * 1000 > 900 ? 1 : 0 : 0)
+        }
+      }
+
+      maze.push(row)
+    }
+    return maze
+  }
+
   export default {
     data() {
       return {
@@ -76,28 +104,29 @@
           this.form.col = 10
         }
       },
+
       // 生成地图
       generateMap() {
-        let maze = []
-        // 生成行
-        for (let i = 0; i < this.form.row; i++) {
-          let row = []
-          for (let j = 0; j < this.form.col; j++) {
-            row.push(this.generateMaze() ? 1 : 0)
-          }
-
-          maze.push(row)
-        }
-
-        this.maze = maze
+        this.maze = initMaze(this.form)
       },
       // 生成障碍
-      generateMaze() {
-        return Math.random() * 1000 > 850
+      autoObstacle() {
+        this.maze = initMaze(this.form, true)
       },
-      // 生成
+      // 计算
       calculate() {
         this.$message(JSON.stringify(this.maze))
+      },
+      // 在当前位置移除或添加障碍
+      changeStatus(i, j) {
+        // 如果是第一个或最后一个，则退出
+        if ((i === 1 && i === j) || (i === this.form.row && j === this.form.col))
+          return
+
+        this.maze[i - 1][j - 1] = this.maze[i - 1][j - 1] ? 0 : 1
+
+        // 考虑到vue对数组支持情况，使用filter
+        this.maze = this.maze.filter(item => item)
       }
     },
     components: {}
@@ -154,6 +183,7 @@
         display: flex;
 
         .maze-step {
+          cursor: pointer;
           // 水平平均分布
           flex: 1;
           // 用div的病
@@ -174,10 +204,23 @@
           }
         }
 
+        // 第一排第一个
+        &:first-of-type {
+          .maze-step:first-of-type {
+            background: url("./assets/images/start.png") no-repeat center center;
+            background-size: 60%;
+          }
+        }
+
         // 最后一列每个格子都设置下边框
         &:last-of-type {
           .maze-step {
             border-bottom: $step-border;
+
+            &:last-of-type {
+              background: url("./assets/images/end.png") no-repeat center center;
+              background-size: 60%;
+            }
           }
         }
       }
