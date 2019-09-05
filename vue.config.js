@@ -1,14 +1,7 @@
 'use strict'
-const path = require('path')
-
-function resolve(dir) {
-  return path.join(__dirname, dir)
-}
-
-const port = process.env.port || process.env.npm_config_port || 8888 // dev port
+const port = process.env.port || process.env.npm_config_port || 45579
 
 module.exports = {
-  // 没有具体地址，使用'/'能正确处理嵌套路由问题
   publicPath: '/',
   outputDir: 'dist',
   lintOnSave: process.env.NODE_ENV === 'development',
@@ -26,34 +19,14 @@ module.exports = {
     overlay: {
       warnings: false,
       errors: true
-    },
-    // 开发代理
-    // proxy: {
-    //   '/api': {
-    //     target: 'http://127.0.0.1:6789',
-    //     // pathRewrite: {'^/api': ''},
-    //     // target是域名的话，需要这个参数
-    //     changeOrigin: true,
-    //     // 设置支持https协议的代理
-    //     secure: false
-    //   }
-    // },
-    before: require('./mock/server')
+    }
   },
   configureWebpack: {
     // 这些玩意使用CDN
     externals: {
       'vue': 'Vue',
-      'vuex': 'Vuex',
-      'vue-router': 'VueRouter',
-      'nprogress': 'NProgress',
       'animate ': 'animate.css',
       'element-ui': 'ELEMENT'
-    },
-    resolve: {
-      alias: {
-        '@': resolve('src')
-      }
     }
   }
 }
