@@ -79,7 +79,10 @@
           'go-down',
           'go-left',
           'go-up'
-        ]
+        ],
+        // 是否已经计算过了
+        // 计算过在布置障碍的时候，需要深度遍历
+        calculated: false
       }
     },
     created() {
@@ -105,7 +108,11 @@
       },
       // 计算
       calculate() {
-        const res = calculate(this.maze)
+        // 设置已计算过
+        this.calculated = true
+        // 清空上次可能的计算状态
+        const res = calculate(this.maze.map(row => row.map(col => col !== 1 ? 0 : 1)))
+
         if (res.ruleWay.length === 0) {
           this.$message.error('没有出路！！！')
         } else {
@@ -118,10 +125,17 @@
         if ((i === 1 && i === j) || (i === this.form.row && j === this.form.col))
           return
 
+        // 设置障碍
         this.maze[i - 1][j - 1] = this.maze[i - 1][j - 1] ? 0 : 1
 
         // 重置一下地图
-        this.maze = this.maze.map(row => row.map(col => col !== 1 ? 0 : 1))
+        if (this.calculated) {
+          this.calculated = false
+          this.maze = this.maze.map(row => row.map(col => col !== 1 ? 0 : 1))
+        } else {
+          // 简单重塑maze
+          this.maze = this.maze.filter(() => true)
+        }
       }
     },
     components: {}
