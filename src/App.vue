@@ -23,6 +23,9 @@
             ></el-input-number>
           </el-form-item>
           <el-form-item>
+            <el-button @click="generateMap">重置</el-button>
+          </el-form-item>
+          <el-form-item>
             <el-button type="primary" @click="calculate">计算</el-button>
           </el-form-item>
           <el-form-item>
@@ -36,7 +39,7 @@
              :key="`row${i}`">
           <div class="maze-step"
                v-for="j of form.col"
-               :class="maze[i-1][j-1] === 1 ? 'obstacle' : ''"
+               :class="mazeStyle[maze[i-1][j-1]]"
                :key="`col${j}`"
                @click="changeStatus(i,j)"
           ></div>
@@ -48,33 +51,11 @@
 </template>
 
 <script>
+  import {initMaze, calculate} from '@/utils'
+
   /**
-   * 生成一个二维数组
-   *
-   * @param form 包含row,col的值
-   * @param random 是否随机
-   * @returns {[]}
+   * 规则0-可过，1-障碍，2-死胡同，3-往右，4-往下，5-往左，6-往上
    */
-  const initMaze = function (form, random = false) {
-    let maze = []
-    // 生成行
-    for (let i = 1; i <= form.row; i++) {
-      let row = []
-      for (let j = 1; j <= form.col; j++) {
-        // 设置障碍状态
-        // 第一个位置和最后一个位置不能为障碍
-        if ((i === 1 && i === j) || (i === form.row && j === form.col)) {
-          row.push(0)
-        } else {
-          row.push(random ? Math.random() * 1000 > 900 ? 1 : 0 : 0)
-        }
-      }
-
-      maze.push(row)
-    }
-    return maze
-  }
-
   export default {
     data() {
       return {
@@ -87,8 +68,18 @@
           min: 3,
           max: 20
         },
-        // 迷宫记录
-        maze: []
+        // 迷宫
+        maze: [],
+        // 迷宫位置样式
+        mazeStyle: [
+          '',
+          'obstacle',
+          '',
+          'go-right',
+          'go-down',
+          'go-left',
+          'go-up'
+        ]
       }
     },
     created() {
@@ -104,7 +95,6 @@
           this.form.col = 10
         }
       },
-
       // 生成地图
       generateMap() {
         this.maze = initMaze(this.form)
@@ -115,7 +105,12 @@
       },
       // 计算
       calculate() {
-        this.$message(JSON.stringify(this.maze))
+        const res = calculate(this.maze)
+        if (res.ruleWay.length === 0) {
+          this.$message.error('没有出路！！！')
+        } else {
+          this.maze = res.maze
+        }
       },
       // 在当前位置移除或添加障碍
       changeStatus(i, j) {
@@ -125,8 +120,8 @@
 
         this.maze[i - 1][j - 1] = this.maze[i - 1][j - 1] ? 0 : 1
 
-        // 考虑到vue对数组支持情况，使用filter
-        this.maze = this.maze.filter(item => item)
+        // 重置一下地图
+        this.maze = this.maze.map(row => row.map(col => col !== 1 ? 0 : 1))
       }
     },
     components: {}
@@ -144,14 +139,24 @@
 
   // 障碍
   .obstacle {
-    background: url("./assets/images/obstacle.png") no-repeat center center;
-    background-size: 60%;
+    background-image: url("./assets/images/obstacle.png");
   }
 
   // 向左走
   .go-left {
-    background: url("./assets/images/left.png") no-repeat center center;
-    background-size: 60%;
+    background-image: url("./assets/images/left.png");
+  }
+
+  .go-right {
+    background-image: url("./assets/images/right.png");
+  }
+
+  .go-up {
+    background-image: url("./assets/images/up.png");
+  }
+
+  .go-down {
+    background-image: url("./assets/images/down.png");
   }
 
   .main {
@@ -189,6 +194,11 @@
           // 用div的病
           display: inline-block;
           box-sizing: border-box;
+          background: {
+            size: 60%;
+            repeat: no-repeat;
+            position: center center;
+          }
 
           // 所以小格子都设置左上边框
           border: {
@@ -207,8 +217,7 @@
         // 第一排第一个
         &:first-of-type {
           .maze-step:first-of-type {
-            background: url("./assets/images/start.png") no-repeat center center;
-            background-size: 60%;
+            background-image: url("./assets/images/start.png");
           }
         }
 
@@ -218,8 +227,7 @@
             border-bottom: $step-border;
 
             &:last-of-type {
-              background: url("./assets/images/end.png") no-repeat center center;
-              background-size: 60%;
+              background-image: url("./assets/images/end.png");
             }
           }
         }
