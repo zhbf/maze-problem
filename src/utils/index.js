@@ -26,12 +26,62 @@ function initMaze(form, random = false) {
 }
 
 /**
+ * 根据计算出的路径在已知的地图上绘制出可视地图
+ *
+ * @param baseMaze 二维数组，包含了障碍的地图数据
+ * @param ruleWay 给出的行走路线
+ * @returns {{maze: *, ruleWay: *}}
+ */
+function redisplay(baseMaze, ruleWay = []) {
+  // 简单数据执行值拷贝
+  let maze = JSON.parse(JSON.stringify(baseMaze))
+
+  for (let index = 0; index < ruleWay.length; index++) {
+    // 下一步在路径中的位置
+    const nextIndex = index + 1
+
+    // 地图上X坐标
+    const mazeX = ruleWay[index][0]
+    // 地图上Y坐标
+    const mazeY = ruleWay[index][1]
+
+    // 判断最后一步还存在不
+    if (nextIndex !== ruleWay.length) {
+      // 向右和向左纵坐标是不会变化的
+      if (ruleWay[index][0] === ruleWay[nextIndex][0]) {
+        // 往右
+        if (ruleWay[index][1] + 1 === ruleWay[nextIndex][1]) {
+          maze[mazeX][mazeY] = 3
+        }
+        // 往左
+        else {
+          maze[mazeX][mazeY] = 5
+        }
+
+      } else {
+        // 往下
+        if (ruleWay[index][0] + 1 === ruleWay[nextIndex][0]) {
+          maze[mazeX][mazeY] = 4
+        }
+        // 往上
+        else {
+          maze[mazeX][mazeY] = 6
+        }
+      }
+    }
+  }
+
+  // 返回一个修改后的地图和路径
+  return {maze, ruleWay}
+}
+
+/**
  * 计算一条可行的出路
  *
  * @param baseMaze 初始迷宫
  * @returns {{maze: *, ruleWay: *}}
  */
-function calculate(baseMaze) {
+function findOneRoute(baseMaze) {
   // 简单数据执行值拷贝
   let maze = JSON.parse(JSON.stringify(baseMaze))
   // 按照右下左的顺序规则最快计算出的一条出路
@@ -39,12 +89,13 @@ function calculate(baseMaze) {
   let ruleWay = []
 
   function autoGo(i, j) {
+    // 不是终点，记录当前位置
+    ruleWay.push([i, j])
+
     // 当前位置是终点？
     if (i === maze.length - 1 && j === maze[i].length - 1) {
       return
     }
-    // 不是终点，记录当前位置
-    ruleWay.push([i, j])
 
     // 判断右边能走不
     // 不能走出右边界
@@ -95,13 +146,11 @@ function calculate(baseMaze) {
 
   autoGo(0, 0)
 
-  return {
-    ruleWay,
-    maze
-  }
+  return redisplay(baseMaze, ruleWay)
 }
 
 export {
   initMaze,
-  calculate
+  findOneRoute,
+  redisplay
 }

@@ -2,7 +2,8 @@
   <div id="app">
     <div class="main">
       <header class="maze-header">
-        <h2>迷宫问题实现</h2><sub> 图标来自<a href="https://www.easyicon.net" target="_blank">easyicon</a></sub>
+        <h2>迷宫问题实现-<a href="https://zhoubangfu.com/">之间</a></h2><sub> 图标来自<a href="https://www.easyicon.net"
+                                                                             target="_blank">easyicon</a></sub>
       </header>
       <div class="maze-attr">
         <el-form :inline="true" size="mini">
@@ -45,13 +46,13 @@
           ></div>
         </div>
       </div>
-      <footer class="maze-result">当前迷宫有100条出路，图中显示为最优解之一</footer>
+      <footer class="maze-result">当前迷宫有{{routeList.length}}条出路，图中显示为最优解之一</footer>
     </div>
   </div>
 </template>
 
 <script>
-  import {initMaze, calculate} from '@/utils'
+  import {initMaze, findOneRoute} from '@/utils'
 
   /**
    * 规则0-可过，1-障碍，2-死胡同，3-往右，4-往下，5-往左，6-往上
@@ -82,7 +83,9 @@
         ],
         // 是否已经计算过了
         // 计算过在布置障碍的时候，需要深度遍历
-        calculated: false
+        calculated: false,
+        // 计算出的路线总汇
+        routeList: []
       }
     },
     created() {
@@ -111,7 +114,9 @@
         // 设置已计算过
         this.calculated = true
         // 清空上次可能的计算状态
-        const res = calculate(this.maze.map(row => row.map(col => col !== 1 ? 0 : 1)))
+        const res = findOneRoute(this.maze.map(row => row.map(col => col !== 1 ? 0 : 1)))
+
+
 
         if (res.ruleWay.length === 0) {
           this.$message.error('没有出路！！！')
