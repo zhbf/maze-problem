@@ -41,9 +41,9 @@ function redisplay(baseMaze, ruleWay = []) {
     const nextIndex = index + 1
 
     // 地图上X坐标
-    const mazeX = ruleWay[index][0]
+    const row = ruleWay[index][0]
     // 地图上Y坐标
-    const mazeY = ruleWay[index][1]
+    const col = ruleWay[index][1]
 
     // 判断最后一步还存在不
     if (nextIndex !== ruleWay.length) {
@@ -51,21 +51,21 @@ function redisplay(baseMaze, ruleWay = []) {
       if (ruleWay[index][0] === ruleWay[nextIndex][0]) {
         // 往右
         if (ruleWay[index][1] + 1 === ruleWay[nextIndex][1]) {
-          maze[mazeX][mazeY] = 3
+          maze[row][col] = 3
         }
         // 往左
         else {
-          maze[mazeX][mazeY] = 5
+          maze[row][col] = 5
         }
 
       } else {
         // 往下
         if (ruleWay[index][0] + 1 === ruleWay[nextIndex][0]) {
-          maze[mazeX][mazeY] = 4
+          maze[row][col] = 4
         }
         // 往上
         else {
-          maze[mazeX][mazeY] = 6
+          maze[row][col] = 6
         }
       }
     }
