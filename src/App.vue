@@ -2,25 +2,31 @@
   <div id="app">
     <div class="main">
       <header class="maze-header">
-        <h2>迷宫问题实现-<a href="https://zhoubangfu.com/">之间</a></h2><sub> 图标来自<a href="https://www.easyicon.net"
-                                                                             target="_blank">easyicon</a></sub>
+        <h2>迷宫问题实现-<a href="https://zhoubangfu.com/">之间</a></h2>
+        <sub> 图标来自
+          <a
+            href="https://www.easyicon.net"
+            target="_blank">easyicon</a>
+        </sub>
       </header>
       <div class="maze-attr">
         <el-form :inline="true" size="mini">
           <el-form-item label="行数">
-            <el-input-number v-model="form.row"
-                             :min="limit.min"
-                             :max="limit.max"
-                             @blur="inputBlur"
-                             @change="generateMap"
+            <el-input-number
+              v-model="form.row"
+              :min="limit.min"
+              :max="limit.max"
+              @blur="inputBlur"
+              @change="generateMap"
             ></el-input-number>
           </el-form-item>
           <el-form-item label="列数">
-            <el-input-number v-model="form.col"
-                             :min="limit.min"
-                             :max="limit.max"
-                             @blur="inputBlur"
-                             @change="generateMap"
+            <el-input-number
+              v-model="form.col"
+              :min="limit.min"
+              :max="limit.max"
+              @blur="inputBlur"
+              @change="generateMap"
             ></el-input-number>
           </el-form-item>
           <el-form-item>
@@ -35,18 +41,20 @@
         </el-form>
       </div>
       <div class="maze-body">
-        <div class="maze-row"
-             v-for="i of form.row"
-             :key="`row${i}`">
-          <div class="maze-step"
-               v-for="j of form.col"
-               :class="mazeStyle[displayMaze[i-1][j-1]]"
-               :key="`col${j}`"
-               @click="changeStatus(i,j)"
+        <div
+          class="maze-row"
+          v-for="i of form.row"
+          :key="`row${i}`">
+          <div
+            class="maze-step"
+            v-for="j of form.col"
+            :class="mazeStyle[displayMaze[i-1][j-1]]"
+            :key="`col${j}`"
+            @click="changeStatus(i,j)"
           ></div>
         </div>
       </div>
-      <footer class="maze-result">当前迷宫有{{routeList.length}}条出路，图中显示为最优解之一</footer>
+      <footer class="maze-result">当前迷宫有{{result.routeCount}}条出路，图中显示为最优解之一</footer>
     </div>
   </div>
 </template>
@@ -66,8 +74,8 @@
         },
         // 表单限制
         limit: {
-          min: 3,
-          max: 20
+          min: 2,
+          max: 10
         },
         // 迷宫
         maze: [],
@@ -86,7 +94,7 @@
         // 计算过在布置障碍的时候，需要深度遍历
         calculated: false,
         // 计算出的路线总汇
-        routeList: []
+        result: {routeCount: 0, bestRoute: []}
       }
     },
     watch: {
@@ -103,9 +111,9 @@
       inputBlur() {
         // 删除后该组件不会赋默认值，手动赋值
         if (!this.form.row) {
-          this.form.row = 10
+          this.form.row = 5
         } else if (!this.form.col) {
-          this.form.col = 10
+          this.form.col = 5
         }
       },
       // 生成地图
@@ -120,22 +128,12 @@
       calculate() {
         // 设置已计算过
         this.calculated = true
-        // 清空上次可能的计算状态
-        // const res = findOneRoute(this.maze.map(row => row.map(col => col !== 1 ? 0 : 1)))
+        this.result = findAllRoutes(this.maze)
 
-        this.routeList = findAllRoutes(this.maze)
-
-        if (this.routeList.length === 0) {
+        if (this.result.routeCount === 0) {
           this.$message.error('没有出路！！！')
         } else {
-          let bastRoute = this.routeList[0]
-          for (let i = 1; i < this.routeList.length; i++) {
-            if (this.routeList[i].length < bastRoute.length) {
-              bastRoute = this.routeList[i]
-            }
-          }
-
-          this.displayMaze = redisplay(this.maze, bastRoute).maze
+          this.displayMaze = redisplay(this.maze, this.result.bestRoute).maze
         }
       },
       // 在当前位置移除或添加障碍
@@ -156,8 +154,7 @@
           this.maze = this.maze.filter(() => true)
         }
       }
-    },
-    components: {}
+    }
   }
 </script>
 
