@@ -40,7 +40,7 @@
              :key="`row${i}`">
           <div class="maze-step"
                v-for="j of form.col"
-               :class="mazeStyle[maze[i-1][j-1]]"
+               :class="mazeStyle[displayMaze[i-1][j-1]]"
                :key="`col${j}`"
                @click="changeStatus(i,j)"
           ></div>
@@ -52,7 +52,7 @@
 </template>
 
 <script>
-  import {initMaze, findOneRoute} from '@/utils'
+  import {initMaze, redisplay, findAllRoutes} from '@/utils'
 
   /**
    * 规则0-可过，1-障碍，2-死胡同，3-往右，4-往下，5-往左，6-往上
@@ -61,8 +61,8 @@
     data() {
       return {
         form: {
-          row: 10,
-          col: 10
+          row: 4,
+          col: 4
         },
         // 表单限制
         limit: {
@@ -71,6 +71,7 @@
         },
         // 迷宫
         maze: [],
+        displayMaze: [],
         // 迷宫位置样式
         mazeStyle: [
           '',
@@ -88,8 +89,14 @@
         routeList: []
       }
     },
+    watch: {
+      maze(val) {
+        this.displayMaze = val
+      }
+    },
     created() {
       this.generateMap()
+      this.displayMaze = this.maze
     },
     methods: {
       // 输入框失去焦点
@@ -114,14 +121,21 @@
         // 设置已计算过
         this.calculated = true
         // 清空上次可能的计算状态
-        const res = findOneRoute(this.maze.map(row => row.map(col => col !== 1 ? 0 : 1)))
+        // const res = findOneRoute(this.maze.map(row => row.map(col => col !== 1 ? 0 : 1)))
 
+        this.routeList = findAllRoutes(this.maze)
 
-
-        if (res.ruleWay.length === 0) {
+        if (this.routeList.length === 0) {
           this.$message.error('没有出路！！！')
         } else {
-          this.maze = res.maze
+          let bastRoute = this.routeList[0]
+          for (let i = 1; i < this.routeList.length; i++) {
+            if (this.routeList[i].length < bastRoute.length) {
+              bastRoute = this.routeList[i]
+            }
+          }
+
+          this.displayMaze = redisplay(this.maze, bastRoute).maze
         }
       },
       // 在当前位置移除或添加障碍

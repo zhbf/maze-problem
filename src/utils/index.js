@@ -16,7 +16,7 @@ function initMaze(form, random = false) {
       if ((i === 1 && i === j) || (i === form.row && j === form.col)) {
         row.push(0)
       } else {
-        row.push(random ? Math.random() * 1000 > 900 ? 1 : 0 : 0)
+        row.push(random ? Math.random() * 1000 > 700 ? 1 : 0 : 0)
       }
     }
 
@@ -149,8 +149,130 @@ function findOneRoute(baseMaze) {
   return redisplay(baseMaze, ruleWay)
 }
 
+/**
+ *
+ * @param maze
+ * @param baseRoute
+ * @param routeList
+ * @returns {Array[]}
+ */
+function go(maze = [[]], baseRoute = [[]], routeList = [[]]) {
+  let location = baseRoute.pop()
+
+  // 如果没有，直接返回
+  if (!location) {
+    return routeList
+  }
+
+  const row = location[0]
+  const col = location[1]
+
+  // 判断向右下左上是否是最后一步
+
+  // 向右，第一不越界，第二这个位置还可以向右，第三地图上向右这个位置可行
+  if (col + 1 !== maze[row].length && maze[row][col + 1] === 0) {
+    // 放回栈中
+    baseRoute.push(location)
+    // 判断下一步是否是最后一步
+    if (row === maze.length - 1 && col + 1 === maze[row].length - 1) {
+      routeList.push(baseRoute.concat([[row, col + 1]]))
+    }
+    // 不是最后一步
+    else {
+      // 封锁地图当前位置
+      maze[row][col] = 3
+
+      // 把下一步放入栈中，继续行走
+      baseRoute.push([row, col + 1])
+
+      routeList = go(maze, baseRoute, routeList)
+    }
+
+    // 将当前位置pop
+    baseRoute.pop()
+  }
+
+  // 向下
+  if (row + 1 !== maze.length && maze[row + 1][col] === 0) {
+    // 放回栈中
+    baseRoute.push(location)
+
+    // 判断下一步是否是最后一步
+    if (row + 1 === maze.length - 1 && col === maze[row].length - 1) {
+      routeList.push(baseRoute.concat([[row + 1, col]]))
+    }
+    // 不是下一步
+    else {
+      // 封锁地图当前位置
+      maze[row][col] = 4
+
+      // 把下一步放入栈中，继续行走
+      baseRoute.push([row + 1, col])
+
+      routeList = go(maze, baseRoute, routeList)
+    }
+
+    // 将当前位置pop
+    baseRoute.pop()
+  }
+
+  // 向左
+  if (col - 1 !== -1 && maze[row][col - 1] === 0) {
+    baseRoute.push(location)
+
+    // 封锁地图当前位置
+    maze[row][col] = 5
+
+    // 目前的迷宫，不可能向左走和向上走是出口
+    // 所以不需要判断下一步是不是出口
+    // 把下一步放入栈中，继续行走
+    baseRoute.push([row, col - 1])
+
+    go(maze, baseRoute, routeList)
+    // 将当前位置pop
+    baseRoute.pop()
+  }
+
+  // 向上
+  if (row - 1 !== -1 && maze[row - 1][col] === 0) {
+    baseRoute.push(location)
+
+    // 封锁地图当前位置
+    maze[row][col] = 6
+
+    baseRoute.push([row - 1, col])
+
+    go(maze, baseRoute, routeList)
+    // 将当前位置pop
+    baseRoute.pop()
+  }
+
+  // 释放当前位置
+  maze[row][col] = 0
+
+  return routeList
+}
+
+/**
+ *
+ *
+ * @param baseMaze
+ * @param baseRoute
+ * @param routeList
+ * @returns {Array}
+ */
+function findAllRoutes(baseMaze, baseRoute = [[0, 0]], routeList = []) {
+  // 该方法会改变迷宫和基础路线
+  // 需要进行深拷贝
+  // 简单数据执行值拷贝
+  let {maze} = redisplay(baseMaze, baseRoute)
+
+  return go(maze, baseRoute, routeList)
+}
+
 export {
   initMaze,
   findOneRoute,
+  findAllRoutes,
   redisplay
 }
